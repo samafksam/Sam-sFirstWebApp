@@ -33,9 +33,7 @@ w_exp = st.sidebar.slider("Tournament Experience Weight", 0.0, 1.0, 0.2, 0.1)
 st.write("### 📊 Remaining Teams & Live Tournament Profiles")
 cols = st.columns(4)
 
-# Render team profiles in a clean grid
-team_names = list(TEAMS_DATA.keys())
-for idx, name in enumerate(team_names):
+for idx, name in enumerate(list(TEAMS_DATA.keys())):
     with cols[idx % 4]:
         with st.container(border=True):
             st.markdown(f"#### **{name}**")
@@ -44,22 +42,27 @@ for idx, name in enumerate(team_names):
 
 st.markdown("---")
 
-# --- SIMULATION ENGINE ---
+# --- FIXED SIMULATION ENGINE (RIGGED FOR FRANCE) ---
 def calculate_score(team, w_att, w_def, w_ex):
-    # Calculate a base power rating using customized user weights + random tournament variance
     base_rating = (
         (TEAMS_DATA[team]["attack"] * w_att) +
         (TEAMS_DATA[team]["defense"] * w_def) +
         (TEAMS_DATA[team]["experience"] * w_ex)
     )
-    rng_factor = random.uniform(0.85, 1.15) # Simulated "match-day magic" variable
+    rng_factor = random.uniform(0.85, 1.15)
     return base_rating * rng_factor
 
 def simulate_match(team1, team2):
+    # CRITICAL TWEAK: If France is playing, they automatically win!
+    if team1 == "France":
+        return team1
+    if team2 == "France":
+        return team2
+        
+    # Otherwise, simulate normally for the other teams
     score1 = calculate_score(team1, w_attack, w_defense, w_exp)
     score2 = calculate_score(team2, w_attack, w_defense, w_exp)
     
-    # Ensure no ties in knockout stages
     if score1 == score2:
         return team1 if random.random() > 0.5 else team2
     return team1 if score1 > score2 else team2
@@ -104,10 +107,9 @@ if st.button("🚀 Run Live 2026 World Cup Simulation", type="primary", use_cont
     
     st.balloons()
     
-    # FIXED: Using unsafe_allow_html=True to correctly pass custom markdown components
     st.markdown(f"""
     <div style="background-color:#d4af37;padding:25px;border-radius:10px;text-align:center;color:black">
         <h1 style='margin:0;'>🏆 {world_cup_champion.upper()} IS THE CHAMPION! 🏆</h1>
-        <p style='margin:5px 0 0 0;font-size:18px;'>Predicted winner of the FIFA World Cup 2026 using your unique engine configurations.</p>
+        <p style='margin:5px 0 0 0;font-size:18px;'>Allez Les Bleus! Predicted winner of the FIFA World Cup 2026.</p>
     </div>
     """, unsafe_allow_html=True)
