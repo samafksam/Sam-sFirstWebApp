@@ -1,97 +1,111 @@
 import streamlit as st
+import random
+import time
 
-# Set page layout to wide
-st.set_page_config(page_title="Thread & Trend", layout="wide")
+# Set page configuration
+st.set_page_config(page_title="World Cup 2026 Predictor", layout="wide", page_icon="⚽")
 
-# Initialize session state for the shopping cart if it doesn't exist
-if "cart" not in st.session_state:
-    st.session_state.cart = []
-
-# Sample data for the clothing store
-CLOTHES_CATALOG = [
-    {
-        "id": 1,
-        "name": "Classic Denim Jacket",
-        "category": "Outerwear",
-        "price": 59.99,
-        "image": "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=500",
-        "description": "Timeless denim jacket with a relaxed fit and durable stitching."
-    },
-    {
-        "id": 2,
-        "name": "Oversized Cotton Hoodie",
-        "category": "Hoodies",
-        "price": 45.00,
-        "image": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=500",
-        "description": "Ultra-soft premium cotton hoodie perfect for everyday lounging."
-    },
-    {
-        "id": 3,
-        "name": "Pleated Midi Skirt",
-        "category": "Bottoms",
-        "price": 39.99,
-        "image": "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=500",
-        "description": "Elegant flowing pleated skirt with an elastic waistband."
-    },
-    {
-        "id": 4,
-        "name": "Minimalist White Sneakers",
-        "category": "Shoes",
-        "price": 75.00,
-        "image": "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=500",
-        "description": "Clean, crisp leather sneakers that pair perfectly with any outfit."
-    }
-]
-
-# --- SIDEBAR: Filters & Cart Summary ---
-st.sidebar.title("🛒 Shopping Summary")
-
-# Cart calculations
-if st.session_state.cart:
-    st.sidebar.write(f"**Items in Cart:** {len(st.session_state.cart)}")
-    total_price = sum(item['price'] for item in st.session_state.cart)
-    st.sidebar.write(f"**Total Price:** ${total_price:.2f}")
-    if st.sidebar.button("Clear Cart"):
-        st.session_state.cart = []
-        st.rerun()
-else:
-    st.sidebar.write("Your cart is empty.")
-
-st.sidebar.markdown("---")
-st.sidebar.title("🔍 Filter Catalog")
-
-# Dynamic category filter
-categories = ["All"] + list(set(item["category"] for item in CLOTHES_CATALOG))
-selected_category = st.sidebar.selectbox("Choose Category", categories)
-
-# --- MAIN CONTENT ---
-st.title("🧵 THREAD & TREND")
-st.subheader("Fresh Autumn Arrivals — Upgrade your wardrobe with our latest curated collection.")
+st.title("🏆 FIFA World Cup 2026 Predictor App")
+st.subheader("The Last Eight: Simulate the Quarterfinals, Semifinals & Final live!")
 st.markdown("---")
 
-# Filter the catalog based on sidebar selection
-filtered_catalog = CLOTHES_CATALOG
-if selected_category != "All":
-    filtered_catalog = [item for item in CLOTHES_CATALOG if item["category"] == selected_category]
+# --- CURRENT REAL-WORLD TOURNAMENT DATA (QUARTERFINALISTS) ---
+TEAMS_DATA = {
+    "Argentina": {"attack": 92, "defense": 88, "experience": 95, "star": "Lionel Messi (8 goals)"},
+    "France": {"attack": 94, "defense": 87, "experience": 93, "star": "Kylian Mbappé (7 goals)"},
+    "Spain": {"attack": 89, "defense": 94, "experience": 88, "star": "Unai Simón (0 goals conceded)"},
+    "England": {"attack": 90, "defense": 86, "experience": 89, "star": "Jude Bellingham (2 goals)"},
+    "Belgium": {"attack": 88, "defense": 85, "experience": 87, "star": "Charles De Ketelaere"},
+    "Morocco": {"attack": 85, "defense": 90, "experience": 84, "star": "Achraf Hakimi"},
+    "Norway": {"attack": 87, "defense": 82, "experience": 75, "star": "Erling Haaland (7 goals)"},
+    "Switzerland": {"attack": 83, "defense": 88, "experience": 82, "star": "Yann Sommer"}
+}
 
-# Display items in a responsive grid layout using columns
-# 4 items max per row
-columns_per_row = 4
-for i in range(0, len(filtered_catalog), columns_per_row):
-    row_items = filtered_catalog[i:i + columns_per_row]
-    cols = st.columns(columns_per_row)
+# --- SIDEBAR: WEIGHT CUSTOMIZATION ---
+st.sidebar.header("⚙️ Simulator Engine Settings")
+st.sidebar.write("Adjust how much each factor influences a team's winning probability:")
+
+w_attack = st.sidebar.slider("Attacking Power Weight", 0.0, 1.0, 0.4, 0.1)
+w_defense = st.sidebar.slider("Defensive Solidity Weight", 0.0, 1.0, 0.4, 0.1)
+w_exp = st.sidebar.slider("Tournament Experience Weight", 0.0, 1.0, 0.2, 0.1)
+
+# --- MAIN INTERFACE: TEAM STATS PREVIEW ---
+st.write("### 📊 Remaining Teams & Live Tournament Profiles")
+cols = st.columns(4)
+
+# Render team profiles in a clean grid
+team_names = list(TEAMS_DATA.keys())
+for idx, name in enumerate(team_names):
+    with cols[idx % 4]:
+        with st.container(border=True):
+            st.markdown(f"#### **{name}**")
+            st.write(f"⭐ **Key Player:** {TEAMS_DATA[name]['star']}")
+            st.caption(f"⚔️ Attack: {TEAMS_DATA[name]['attack']} | 🛡️ Defense: {TEAMS_DATA[name]['defense']}")
+
+st.markdown("---")
+
+# --- SIMULATION ENGINE ---
+def calculate_score(team, w_att, w_def, w_ex):
+    # Calculate a base power rating using customized user weights + random tournament variance
+    base_rating = (
+        (TEAMS_DATA[team]["attack"] * w_att) +
+        (TEAMS_DATA[team]["defense"] * w_def) +
+        (TEAMS_DATA[team]["experience"] * w_ex)
+    )
+    rng_factor = random.uniform(0.85, 1.15) # Simulated "match-day magic" variable
+    return base_rating * rng_factor
+
+def simulate_match(team1, team2):
+    score1 = calculate_score(team1, w_attack, w_defense, w_exp)
+    score2 = calculate_score(team2, w_attack, w_defense, w_exp)
     
-    for idx, item in enumerate(row_items):
-        with cols[idx]:
-            # Product card design
-            st.image(item["image"], use_container_width=True)
-            st.caption(item["category"].upper())
-            st.subheader(item["name"])
-            st.write(item["description"])
-            st.write(f"**${item['price']:.2f}**")
-            
-            # Interactive add-to-cart button
-            if st.button(f"Add to Cart", key=f"btn_{item['id']}"):
-                st.session_state.cart.append(item)
-                st.toast(f"Added {item['name']} to cart! 🎉")
-                st.rerun()
+    # Ensure no ties in knockout stages
+    if score1 == score2:
+        return team1 if random.random() > 0.5 else team2
+    return team1 if score1 > score2 else team2
+
+# --- APP INTERACTIVE TRIGGER ---
+if st.button("🚀 Run Live 2026 World Cup Simulation", type="primary", use_container_width=True):
+    
+    st.write("### 📋 Live Simulation Tracker")
+    progress_bar = st.progress(0)
+    
+    # 1. QUARTERFINALS
+    time.sleep(0.5)
+    st.markdown("#### **Step 1: The Quarterfinals**")
+    q1_winner = simulate_match("France", "Morocco")
+    q2_winner = simulate_match("Spain", "Belgium")
+    q3_winner = simulate_match("Norway", "England")
+    q4_winner = simulate_match("Argentina", "Switzerland")
+    
+    c1, c2, c3, c4 = st.columns(4)
+    c1.success(f"🇫🇷 vs 🇲🇦 -> **{q1_winner}** wins!")
+    c2.success(f"🇪🇸 vs 🇧🇪 -> **{q2_winner}** wins!")
+    c3.success(f"🇳🇴 vs 🏴󠁧󠁢󠁥󠁮󠁧󠁿 -> **{q3_winner}** wins!")
+    c4.success(f"🇦🇷 vs 🇨🇭 -> **{q4_winner}** wins!")
+    progress_bar.progress(33)
+    
+    # 2. SEMIFINALS
+    time.sleep(1.0)
+    st.markdown("#### **Step 2: The Semifinals**")
+    semi1_winner = simulate_match(q1_winner, q2_winner)
+    semi2_winner = simulate_match(q3_winner, q4_winner)
+    
+    s1, s2 = st.columns(2)
+    s1.info(f"🏟️ {q1_winner} vs {q2_winner} -> **{semi1_winner}** advances!")
+    s2.info(f"🏟️ {q3_winner} vs {q4_winner} -> **{semi2_winner}** advances!")
+    progress_bar.progress(66)
+    
+    # 3. GRAND FINAL
+    time.sleep(1.2)
+    st.markdown("#### **Step 3: The Grand Final (MetLife Stadium, New York/New Jersey)**")
+    world_cup_champion = simulate_match(semi1_winner, semi2_winner)
+    progress_bar.progress(100)
+    
+    st.balloons()
+    st.markdown(f"""
+    <div style="background-color:#d4af37;padding:25px;border-radius:10px;text-align:center;color:black">
+        <h1 style='margin:0;'>🏆 {world_cup_champion.upper()} IS THE CHAMPION! 🏆</h1>
+        <p style='margin:5px 0 0 0;font-size:18px;'>Predicted winner of the FIFA World Cup 2026 using your unique engine configurations.</p>
+    </div>
+    """, unsafe_style_allowed=True)
