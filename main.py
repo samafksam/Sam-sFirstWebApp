@@ -9,7 +9,7 @@ st.title("🏆 FIFA World Cup 2026 Predictor App")
 st.subheader("The Last Eight: Simulate the Quarterfinals, Semifinals & Final live!")
 st.markdown("---")
 
-# --- CURRENT REAL-WORLD TOURNAMENT DATA (QUARTERFINALISTS) ---
+# --- TOURNAMENT DATA (QUARTERFINALISTS) ---
 TEAMS_DATA = {
     "Argentina": {"attack": 92, "defense": 88, "experience": 95, "star": "Lionel Messi (8 goals)"},
     "France": {"attack": 94, "defense": 87, "experience": 93, "star": "Kylian Mbappé (7 goals)"},
@@ -98,14 +98,16 @@ if st.button("🚀 Run Live 2026 World Cup Simulation", type="primary", use_cont
     
     # 3. GRAND FINAL
     time.sleep(1.2)
-    st.markdown("#### **Step 3: The Grand Final (MetLife Stadium, New York/New Jersey)**")
+    st.markdown("#### **Step 3: The Grand Final (MetLife Stadium, NY/NJ)**")
     world_cup_champion = simulate_match(semi1_winner, semi2_winner)
     progress_bar.progress(100)
     
     st.balloons()
+    
+    # FIXED: Using unsafe_allow_html=True to correctly pass custom markdown components
     st.markdown(f"""
     <div style="background-color:#d4af37;padding:25px;border-radius:10px;text-align:center;color:black">
         <h1 style='margin:0;'>🏆 {world_cup_champion.upper()} IS THE CHAMPION! 🏆</h1>
         <p style='margin:5px 0 0 0;font-size:18px;'>Predicted winner of the FIFA World Cup 2026 using your unique engine configurations.</p>
     </div>
-    """, unsafe_style_allowed=True)
+    """, unsafe_allow_html=True)
